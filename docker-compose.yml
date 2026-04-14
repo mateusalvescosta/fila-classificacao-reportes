@@ -1,0 +1,29 @@
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: api_mensageria_db
+    environment:
+      POSTGRES_DB: api_mensageria_db
+      POSTGRES_USER: mensageria_user
+      POSTGRES_PASSWORD: salesiano2025
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  api:
+    build: .
+    container_name: api_mensageria
+    depends_on:
+      - postgres
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/api_mensageria_db
+      SPRING_DATASOURCE_USERNAME: mensageria_user
+      SPRING_DATASOURCE_PASSWORD: salesiano2025
+    ports:
+      - "8080:8080"
+
+volumes:
+  postgres_data:
