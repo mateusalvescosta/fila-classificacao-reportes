@@ -8,6 +8,7 @@ import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -16,25 +17,20 @@ import java.util.Map;
 public class Task {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(name = "queue_name", nullable = false, length = 100)
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
     private String queueName;
-
-    @Column(name = "status", nullable = false, length = 20)
     private String status = "pending";
-
-    @Column(name = "attempts", nullable = false)
     private Integer attempts = 0;
-
-    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
-
-    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt = LocalDateTime.now();
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "payload", nullable = false, columnDefinition = "jsonb")
+    @Column(columnDefinition = "jsonb")
     private Map<String, Object> payload;
+
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
 }

@@ -1,5 +1,6 @@
 package com.unisales.api_mensageria.service;
 
+import com.unisales.api_mensageria.dto.QueueStatsDTO;
 import com.unisales.api_mensageria.dto.TaskRequestDTO;
 import com.unisales.api_mensageria.dto.TaskUpdateDTO;
 import com.unisales.api_mensageria.model.Task;
@@ -7,7 +8,8 @@ import com.unisales.api_mensageria.repository.TaskRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
+import java.util.List;
+import java.util.UUID;
 
 @Service
 public class TaskService {
@@ -26,28 +28,29 @@ public class TaskService {
     }
 
     @Transactional
-    public Optional<Task> dequeue(String queueName) {
-        Optional<Task> task = taskRepository.findNextTask(queueName);
-
-        if (task.isPresent()) {
-            task.get().setStatus("processing");
-            taskRepository.save(task.get());
+    public Task dequeue(String queueName) {
+        Task task = taskRepository.findNextTask(queueName).orElse(null);
+        if (task != null) {
+            task.setStatus("processing");
+            task.setAttempts(task.getAttempts() + 1);
+            taskRepository.save(task);
         }
-
         return task;
     }
 
     @Transactional
-    public Task updateStatus(Long id, TaskUpdateDTO dto) {
+    public Task updateStatus(UUID id, TaskUpdateDTO dto) {
         Task task = taskRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Tarefa não encontrada: " + id));
-
+                .orElseThrow(() -> new RuntimeException("Task not found: " + id));
         task.setStatus(dto.getStatus());
-
-        if (dto.getStatus().equals("error")) {
-            task.setAttempts(task.getAttempts() + 1);
-        }
-
         return taskRepository.save(task);
+    }
+
+    public List<Task> listAll() {
+        return taskRepository.findAll();
+    }
+
+    public List<QueueStatsDTO> getQueueStats() {
+        return taskRepository.findQueueStats();
     }
 }

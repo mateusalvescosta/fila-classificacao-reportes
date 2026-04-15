@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS tasks (
-    id          BIGSERIAL    PRIMARY KEY,
+    id          UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
     queue_name  VARCHAR(100) NOT NULL,
     payload     JSONB        NOT NULL,
     status      VARCHAR(20)  NOT NULL DEFAULT 'pending',
