@@ -5,8 +5,8 @@ services:
     container_name: api_mensageria_db
     environment:
       POSTGRES_DB: api_mensageria_db
-      POSTGRES_USER: mensageria_user
-      POSTGRES_PASSWORD: salesiano2025
+      POSTGRES_USER: 
+      POSTGRES_PASSWORD: 
     ports:
       - "5432:5432"
     volumes:
@@ -20,8 +20,8 @@ services:
       - postgres
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/api_mensageria_db
-      SPRING_DATASOURCE_USERNAME: mensageria_user
-      SPRING_DATASOURCE_PASSWORD: salesiano2025
+      SPRING_DATASOURCE_USERNAME: 
+      SPRING_DATASOURCE_PASSWORD: 
     ports:
       - "8080:8080"
 
