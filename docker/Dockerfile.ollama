@@ -1,3 +1,5 @@
+# Opcional: build local. O docker-compose usa image: ollama/ollama + volume do script
+# (evita falhas do BuildKit no Windows após extrair a camada grande da base).
 FROM ollama/ollama:latest
 
 USER root

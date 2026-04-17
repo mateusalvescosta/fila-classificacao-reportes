@@ -18,16 +18,19 @@ services:
       timeout: 5s
       retries: 10
 
+  # Imagem oficial + script montado (sem Dockerfile.ollama): no Windows o BuildKit costuma dar
+  # "EOF" no passo COPY a seguir à extração da camada ~3.6GB do ollama/ollama.
   ollama:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.ollama
+    image: ollama/ollama:latest
+    user: "0:0"
     ports:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
+      - ./docker/ollama-bootstrap.sh:/ollama-bootstrap.sh:ro
     environment:
       OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.2}
+    entrypoint: ["/bin/sh", "/ollama-bootstrap.sh"]
     # Healthy só quando o modelo aparece em `ollama list` (evita workers antes do pull).
     # $$ vira $ no compose; default no shell do container evita nome de modelo vazio.
     healthcheck:
