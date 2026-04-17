@@ -1,0 +1,8 @@
+FROM ollama/ollama:latest
+
+USER root
+COPY docker/ollama-bootstrap.sh /ollama-bootstrap.sh
+RUN chmod +x /ollama-bootstrap.sh
+
+# A imagem ollama/ollama nem sempre define o utilizador "ollama" no passwd; manter root evita o erro do daemon.
+ENTRYPOINT ["/ollama-bootstrap.sh"]

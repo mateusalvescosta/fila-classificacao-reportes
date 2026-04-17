@@ -5,7 +5,16 @@ import com.unisales.api_mensageria.dto.TaskRequestDTO;
 import com.unisales.api_mensageria.dto.TaskUpdateDTO;
 import com.unisales.api_mensageria.model.Task;
 import com.unisales.api_mensageria.service.TaskService;
-import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.UUID;
@@ -21,7 +30,7 @@ public class TaskController {
     }
 
     @PostMapping
-    public Task enqueue(@RequestBody TaskRequestDTO dto) {
+    public Task enqueue(@Valid @RequestBody TaskRequestDTO dto) {
         return taskService.enqueue(dto);
     }
 
@@ -30,18 +39,54 @@ public class TaskController {
         return taskService.listAll();
     }
 
-    @GetMapping("/next/{queueName}")
-    public Task dequeue(@PathVariable String queueName) {
-        return taskService.dequeue(queueName);
-    }
-
-    @PatchMapping("/{id}")
-    public Task updateStatus(@PathVariable UUID id, @RequestBody TaskUpdateDTO dto) {
-        return taskService.updateStatus(id, dto);
-    }
-
     @GetMapping("/stats")
     public List<QueueStatsDTO> getStats() {
         return taskService.getQueueStats();
+    }
+
+    /** Próxima tarefa sem prioridade (só o worker classificador deve usar). */
+    @GetMapping("/next/{queueName}/unclassified")
+    public ResponseEntity<Task> dequeueUnclassified(@PathVariable String queueName) {
+        return taskService.dequeueUnclassified(queueName)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.noContent().build());
+    }
+
+    /** Próxima tarefa já classificada com prioridade >= min (worker de alerta de alta prioridade). */
+    @GetMapping("/next/{queueName}/high-priority")
+    public ResponseEntity<Task> dequeueHighPriority(
+            @PathVariable String queueName,
+            @RequestParam(name = "min", defaultValue = "8") int minPriority) {
+        return taskService.dequeueHighPriority(queueName, minPriority)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.noContent().build());
+    }
+
+    /** Próxima tarefa classificada com prioridade < below (ex.: below=8 -> 1-7), para não ficar presa na fila. */
+    @GetMapping("/next/{queueName}/standard")
+    public ResponseEntity<Task> dequeueStandard(
+            @PathVariable String queueName,
+            @RequestParam(name = "below", defaultValue = "8") int belowPriority) {
+        return taskService.dequeueStandardPriority(queueName, belowPriority)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.noContent().build());
+    }
+
+    /** Dequeue genérico (testes / compatibilidade). */
+    @GetMapping("/next/{queueName}")
+    public ResponseEntity<Task> dequeue(@PathVariable String queueName) {
+        return taskService.dequeue(queueName)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.noContent().build());
+    }
+
+    @GetMapping("/{id}")
+    public Task getById(@PathVariable UUID id) {
+        return taskService.getById(id);
+    }
+
+    @RequestMapping(value = "/{id}", method = {RequestMethod.PATCH, RequestMethod.PUT})
+    public Task updateStatus(@PathVariable UUID id, @Valid @RequestBody TaskUpdateDTO dto) {
+        return taskService.updateStatus(id, dto);
     }
 }

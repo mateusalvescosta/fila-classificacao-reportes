@@ -5,25 +5,124 @@ services:
     container_name: api_mensageria_db
     environment:
       POSTGRES_DB: api_mensageria_db
-      POSTGRES_USER: 
-      POSTGRES_PASSWORD: 
+      POSTGRES_USER: mateusdev
+      POSTGRES_PASSWORD: sold@doM45
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mateusdev -d api_mensageria_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  ollama:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.2}
+    # Healthy só quando o modelo aparece em `ollama list` (evita workers antes do pull).
+    # $$ vira $ no compose; default no shell do container evita nome de modelo vazio.
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "M=$${OLLAMA_MODEL:-llama3.2}; BASE=$$(echo \"$$M\" | cut -d: -f1); ollama list | grep -qiF \"$$BASE\" || exit 1",
+        ]
+      interval: 15s
+      timeout: 15s
+      retries: 60
+      start_period: 900s
 
   api:
     build: .
     container_name: api_mensageria
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/api_mensageria_db
-      SPRING_DATASOURCE_USERNAME: 
-      SPRING_DATASOURCE_PASSWORD: 
+      SPRING_DATASOURCE_USERNAME: mateusdev
+      SPRING_DATASOURCE_PASSWORD: sold@doM45
     ports:
       - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 90s
+
+  # RF-07: um serviço por função; deploy.replicas = vários containers com o mesmo papel.
+  # Fila: defina QUEUE_NAME no .env ou `QUEUE_NAME=minha_fila docker compose up` (padrão: email).
+  # classifier (IA) | high_alert (só mensagem prioridade alta) | standard (só encerra 1–7).
+  worker-classifier:
+    build:
+      context: ./python
+      dockerfile: worker/Dockerfile
+    command: ["python", "-u", "classifier_worker.py"]
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy
+    environment:
+      API_BASE_URL: http://api:8080
+      QUEUE_NAME: ${QUEUE_NAME:-email}
+      OLLAMA_URL: http://ollama:11434
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.2}
+      POLL_INTERVAL_SECONDS: ${POLL_INTERVAL_SECONDS:-5}
+      MAX_RETRY_ATTEMPTS: ${MAX_RETRY_ATTEMPTS:-5}
+    deploy:
+      mode: replicated
+      replicas: 2
+
+  worker-standard:
+    build:
+      context: ./python
+      dockerfile: worker/Dockerfile
+    command: ["python", "-u", "standard_worker.py"]
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      API_BASE_URL: http://api:8080
+      QUEUE_NAME: ${QUEUE_NAME:-email}
+      HIGH_PRIORITY_MIN: ${HIGH_PRIORITY_MIN:-8}
+      POLL_INTERVAL_SECONDS: ${POLL_INTERVAL_SECONDS:-5}
+      MAX_RETRY_ATTEMPTS: ${MAX_RETRY_ATTEMPTS:-5}
+    deploy:
+      mode: replicated
+      replicas: 2
+
+  worker-high-alert:
+    build:
+      context: ./python
+      dockerfile: worker/Dockerfile
+    command: ["python", "-u", "high_alert_worker.py"]
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      API_BASE_URL: http://api:8080
+      QUEUE_NAME: ${QUEUE_NAME:-email}
+      HIGH_PRIORITY_MIN: ${HIGH_PRIORITY_MIN:-8}
+      POLL_INTERVAL_SECONDS: ${POLL_INTERVAL_SECONDS:-5}
+      MAX_RETRY_ATTEMPTS: ${MAX_RETRY_ATTEMPTS:-5}
+    deploy:
+      mode: replicated
+      replicas: 2
 
 volumes:
   postgres_data:
+  ollama_data:

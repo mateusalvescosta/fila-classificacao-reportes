@@ -14,9 +14,31 @@ import java.util.UUID;
 public interface TaskRepository extends JpaRepository<Task, UUID> {
 
     @Query(value = "SELECT * FROM tasks WHERE queue_name = ?1 " +
-                   "AND status = 'pending' ORDER BY created_at " +
+                   "AND status = 'pending' " +
+                   "ORDER BY (priority IS NULL) DESC, " +
+                   "CASE WHEN priority IS NULL THEN created_at END ASC NULLS LAST, " +
+                   "priority DESC NULLS LAST, " +
+                   "created_at ASC " +
                    "LIMIT 1 FOR UPDATE SKIP LOCKED", nativeQuery = true)
     Optional<Task> findNextTask(String queueName);
+
+    @Query(value = "SELECT * FROM tasks WHERE queue_name = ?1 " +
+                   "AND status = 'pending' AND priority IS NULL " +
+                   "ORDER BY created_at ASC " +
+                   "LIMIT 1 FOR UPDATE SKIP LOCKED", nativeQuery = true)
+    Optional<Task> findNextUnclassified(String queueName);
+
+    @Query(value = "SELECT * FROM tasks WHERE queue_name = ?1 " +
+                   "AND status = 'pending' AND priority IS NOT NULL AND priority >= ?2 " +
+                   "ORDER BY priority DESC, created_at ASC " +
+                   "LIMIT 1 FOR UPDATE SKIP LOCKED", nativeQuery = true)
+    Optional<Task> findNextHighPriority(String queueName, int minPriority);
+
+    @Query(value = "SELECT * FROM tasks WHERE queue_name = ?1 " +
+                   "AND status = 'pending' AND priority IS NOT NULL AND priority < ?2 " +
+                   "ORDER BY created_at ASC " +
+                   "LIMIT 1 FOR UPDATE SKIP LOCKED", nativeQuery = true)
+    Optional<Task> findNextStandardPriority(String queueName, int belowPriority);
 
     @Query(value = "SELECT queue_name AS queueName, " +
                    "COUNT(CASE WHEN status = 'pending'    THEN 1 END) AS pending, " +
