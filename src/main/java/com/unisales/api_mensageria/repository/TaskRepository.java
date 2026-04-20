@@ -1,7 +1,8 @@
 package com.unisales.api_mensageria.repository;
 
-import com.unisales.api_mensageria.dto.QueueStatsDTO;
 import com.unisales.api_mensageria.model.Task;
+import com.unisales.api_mensageria.projection.QueueStatsProjection;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -24,5 +25,5 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
                    "COUNT(CASE WHEN status = 'done'       THEN 1 END) AS done, " +
                    "COUNT(CASE WHEN status = 'error'      THEN 1 END) AS error " +
                    "FROM tasks GROUP BY queue_name ORDER BY queue_name", nativeQuery = true)
-    List<QueueStatsDTO> findQueueStats();
+    List<QueueStatsProjection> findQueueStats();
 }

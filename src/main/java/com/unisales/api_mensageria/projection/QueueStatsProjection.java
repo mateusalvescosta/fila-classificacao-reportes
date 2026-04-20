@@ -1,6 +1,6 @@
-package com.unisales.api_mensageria.dto;
+package com.unisales.api_mensageria.projection;
 
-public interface QueueStatsDTO {
+public interface QueueStatsProjection {
     String getQueueName();
     long getPending();
     long getProcessing();
