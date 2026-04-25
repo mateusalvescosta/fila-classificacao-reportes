@@ -1,4 +1,4 @@
-package com.unisales.api_mensageria.exception;
+package com.unisales.fila_reportes.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;

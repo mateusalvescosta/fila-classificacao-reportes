@@ -1,11 +1,5 @@
-package com.unisales.api_mensageria.controller;
+package com.unisales.fila_reportes.controller;
 
-import com.unisales.api_mensageria.projection.QueueStatsProjection;
-import com.unisales.api_mensageria.dto.TaskRequestDTO;
-import com.unisales.api_mensageria.dto.TaskUpdateDTO;
-import com.unisales.api_mensageria.model.Task;
-import com.unisales.api_mensageria.projection.QueueStatsProjection;
-import com.unisales.api_mensageria.service.TaskService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,6 +9,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.unisales.fila_reportes.dto.TaskRequestDTO;
+import com.unisales.fila_reportes.dto.TaskUpdateDTO;
+import com.unisales.fila_reportes.model.Task;
+import com.unisales.fila_reportes.projection.QueueStatsProjection;
+import com.unisales.fila_reportes.service.TaskService;
 
 import java.util.List;
 import java.util.UUID;

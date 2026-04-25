@@ -1,17 +1,16 @@
-package com.unisales.api_mensageria.service;
-
-import com.unisales.api_mensageria.projection.QueueStatsProjection;
-import com.unisales.api_mensageria.dto.TaskRequestDTO;
-import com.unisales.api_mensageria.dto.TaskUpdateDTO;
-import com.unisales.api_mensageria.exception.TaskNotFoundException;
-import com.unisales.api_mensageria.model.Task;
-import com.unisales.api_mensageria.projection.QueueStatsProjection;
-import com.unisales.api_mensageria.repository.TaskRepository;
+package com.unisales.fila_reportes.service;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+
+import com.unisales.fila_reportes.dto.TaskRequestDTO;
+import com.unisales.fila_reportes.dto.TaskUpdateDTO;
+import com.unisales.fila_reportes.exception.TaskNotFoundException;
+import com.unisales.fila_reportes.model.Task;
+import com.unisales.fila_reportes.projection.QueueStatsProjection;
+import com.unisales.fila_reportes.repository.TaskRepository;
 
 import java.util.List;
 import java.util.Optional;

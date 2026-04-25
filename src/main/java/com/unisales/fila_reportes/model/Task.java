@@ -1,4 +1,4 @@
-package com.unisales.api_mensageria.model;
+package com.unisales.fila_reportes.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;

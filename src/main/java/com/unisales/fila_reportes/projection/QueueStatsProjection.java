@@ -1,4 +1,4 @@
-package com.unisales.api_mensageria.projection;
+package com.unisales.fila_reportes.projection;
 
 public interface QueueStatsProjection {
     String getQueueName();

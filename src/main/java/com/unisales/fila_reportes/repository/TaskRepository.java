@@ -1,11 +1,11 @@
-package com.unisales.api_mensageria.repository;
-
-import com.unisales.api_mensageria.projection.QueueStatsProjection;
-import com.unisales.api_mensageria.model.Task;
+package com.unisales.fila_reportes.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+
+import com.unisales.fila_reportes.model.Task;
+import com.unisales.fila_reportes.projection.QueueStatsProjection;
 
 import java.util.List;
 import java.util.Optional;

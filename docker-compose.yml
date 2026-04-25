@@ -52,7 +52,7 @@ services:
       POLL_INTERVAL_SECONDS: ${POLL_INTERVAL_SECONDS:-10}
       MAX_RETRY_ATTEMPTS: ${MAX_RETRY_ATTEMPTS:-3}
       HIGH_PRIORITY_MIN: ${HIGH_PRIORITY_MIN:-7}
-      GROQ_API_KEY: GROQ_API_KEY: ${GROQ_API_KEY}
+      GROQ_API_KEY: ${GROQ_API_KEY}
       GROQ_MODEL: llama-3.1-8b-instant
     deploy:
       mode: replicated
@@ -90,7 +90,7 @@ services:
       QUEUE_NAME: reports-high
       POLL_INTERVAL_SECONDS: ${POLL_INTERVAL_SECONDS:-10}
       MAX_RETRY_ATTEMPTS: ${MAX_RETRY_ATTEMPTS:-3}
-      WEBHOOK_URL: ${WEBHOOK_URL:-https://4f97db27deb1c0419c48cc0c0029b26c.m.pipedream.net}
+      WEBHOOK_URL: ${WEBHOOK_URL}
     deploy:
       mode: replicated
       replicas: 2

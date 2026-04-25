@@ -1,4 +1,4 @@
-package com.unisales.api_mensageria.dto;
+package com.unisales.fila_reportes.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
