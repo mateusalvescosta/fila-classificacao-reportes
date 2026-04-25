@@ -9,7 +9,7 @@ import re
 
 SYSTEM_MSG = """Você é um classificador de prioridade operacional (português do Brasil).
 Siga as regras de negócio: incidentes que derrubam produção ou afetam muitos clientes NUNCA podem ser prioridade baixa.
-Responda APENAS um objeto JSON com as chaves exatas "priority" (inteiro 1-10) e "priorityLabel" (uma palavra curta: baixa, normal, média, alta ou crítica).""".strip()
+Responda APENAS um objeto JSON com as chaves exatas "priority" (inteiro 1-10) e "priorityLabel" (uma palavra curta: baixa, média ou alta).""".strip()
 
 
 def user_prompt(description: str) -> str:
@@ -18,8 +18,7 @@ def user_prompt(description: str) -> str:
 Escala (priority):
 - 1-3: rotinas, dúvidas internas, baixo impacto para clientes.
 - 4-6: incômodo moderado, prazo normal.
-- 7-8: impacto forte em clientes ou negócio; precisa resposta urgente.
-- 9-10: produção ou serviço principal indisponível, muitos ou todos os clientes afetados, perda de receita, dados ou segurança em risco.
+- 7-10: impacto forte a crítico em clientes ou negócio; precisa resposta urgente.
 
 Regras obrigatórias:
 - Se houver produção/serviço EM BAIXO, PARADO, INDISPONÍVEL, ou clientes SEM ACESSO / TODOS OS CLIENTES afetados, use pelo menos 8 (em geral 9 ou 10).
@@ -28,7 +27,7 @@ Regras obrigatórias:
 Exemplos:
 - "Ajustar typo no relatório interno" -> {{"priority": 2, "priorityLabel": "baixa"}}
 - "Pedido de reembolso atrasado (1 cliente)" -> {{"priority": 5, "priorityLabel": "média"}}
-- "Produção em baixo, todos os clientes sem acesso" -> {{"priority": 10, "priorityLabel": "crítica"}}
+- "Produção em baixo, todos os clientes sem acesso" -> {{"priority": 10, "priorityLabel": "alta"}}
 
 Texto a classificar:
 {description!r}
@@ -57,6 +56,6 @@ def apply_severity_floor(description: str, priority: int, label: str) -> tuple[i
     """Se a descrição indica incidente grave e o modelo respondeu baixo, sobe o piso."""
     text = description.lower()
     severe = any(re.search(p, text, re.IGNORECASE) for p in _INCIDENT_PATTERNS)
-    if severe and priority < 8:
-        return 9, "crítica", True
+    if severe and priority < 7:
+        return 9, "alta", True
     return priority, label, False
