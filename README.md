@@ -4,9 +4,13 @@
 **Grupo:** Mateus Alves Costa, Carlos Eduardo Pisa Meireles e Guilherme de Amorim Gomes
 
 
-## O que é o sistema?
-
-O sistema é uma fila distribuída de classificação de reportes operacionais. Quando um usuário abre um reporte informando título, descrição, tipo de ocorrência, setor e categoria, o sistema classifica automaticamente a prioridade desse reporte usando IA (Groq/LLaMA), sem necessidade de análise humana prévia. Com base na prioridade classificada, o reporte é encaminhado para a fila correta e processado pelo worker responsável.
+## Exclusão Mútua
+ 
+A exclusão mútua entre workers da mesma fila é garantida pelo PostgreSQL através do mecanismo `FOR UPDATE SKIP LOCKED`, utilizado nas queries nativas do `TaskRepository`.
+ 
+- **`FOR UPDATE`** — ao selecionar uma linha, o PostgreSQL coloca um lock exclusivo nela, impedindo que outra transação a leia ou modifique até o lock ser liberado.
+- **`SKIP LOCKED`** — em vez de esperar o lock ser liberado (o que causaria fila de espera), outros workers simplesmente pulam a linha bloqueada e pegam a próxima disponível.
+Sem esse mecanismo, dois workers poderiam ler a mesma tarefa quase simultaneamente — antes que qualquer um tivesse tempo de salvar o status `processing` — resultando em processamento duplicado. Com `FOR UPDATE SKIP LOCKED`, isso é impossível: a linha é bloqueada no exato momento da leitura, dentro de uma transação `@Transactional`, garantindo que apenas um worker processe cada reporte.
 
 
 ## Stack Tecnológica
