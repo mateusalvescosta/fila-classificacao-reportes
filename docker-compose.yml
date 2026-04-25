@@ -2,32 +2,32 @@ services:
 
   postgres:
     image: postgres:16-alpine
-    container_name: api_mensageria_db
+    container_name: fila_reportes_db
     environment:
-      POSTGRES_DB: api_mensageria_db
-      POSTGRES_USER: mateusdev
-      POSTGRES_PASSWORD: sold@doM45
+      POSTGRES_DB: fila_reportes_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U mateusdev -d api_mensageria_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d fila_reportes_db"]
       interval: 5s
       timeout: 5s
       retries: 10
 
   api:
     build: .
-    container_name: api_mensageria
+    container_name: fila_reportes_api
     depends_on:
       postgres:
         condition: service_healthy
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/api_mensageria_db
-      SPRING_DATASOURCE_USERNAME: mateusdev
-      SPRING_DATASOURCE_PASSWORD: sold@doM45
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/fila_reportes_db
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "8080:8080"
     healthcheck:
