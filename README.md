@@ -4,15 +4,6 @@
 **Grupo:** Mateus Alves Costa, Carlos Eduardo Pisa Meireles e Guilherme de Amorim Gomes
 
 
-## Exclusão Mútua
- 
-A exclusão mútua entre workers da mesma fila é garantida pelo PostgreSQL através do mecanismo `FOR UPDATE SKIP LOCKED`, utilizado nas queries nativas do `TaskRepository`.
- 
-- **`FOR UPDATE`** — ao selecionar uma linha, o PostgreSQL coloca um lock exclusivo nela, impedindo que outra transação a leia ou modifique até o lock ser liberado.
-- **`SKIP LOCKED`** — em vez de esperar o lock ser liberado (o que causaria fila de espera), outros workers simplesmente pulam a linha bloqueada e pegam a próxima disponível.
-Sem esse mecanismo, dois workers poderiam ler a mesma tarefa quase simultaneamente — antes que qualquer um tivesse tempo de salvar o status `processing` — resultando em processamento duplicado. Com `FOR UPDATE SKIP LOCKED`, isso é impossível: a linha é bloqueada no exato momento da leitura, dentro de uma transação `@Transactional`, garantindo que apenas um worker processe cada reporte.
-
-
 ## Stack Tecnológica
 
 | Camada | Tecnologia |
@@ -213,9 +204,14 @@ O mecanismo de retry é gerenciado pela coluna `attempts` da tabela `tasks`. A c
 **Comportamento especial do Classifier:** quando o classifier classifica com sucesso e redireciona a tarefa para outra fila, a API decrementa o `attempts` de volta para zero — garantindo que o worker da próxima fase começa com o contador zerado e tem suas próprias tentativas independentes.
 
 
-## Exclusão Mútua
 
-A exclusão mútua entre workers da mesma fila é garantida pelo PostgreSQL através do mecanismo `FOR UPDATE SKIP LOCKED`. Quando um worker reserva um reporte, ele bloqueia a linha no banco — outros workers que tentarem pegar o mesmo reporte vão pular para o próximo disponível, garantindo que dois workers nunca processem o mesmo reporte simultaneamente.
+## Exclusão Mútua
+ 
+A exclusão mútua entre workers da mesma fila é garantida pelo PostgreSQL através do mecanismo `FOR UPDATE SKIP LOCKED`, utilizado nas queries nativas do `TaskRepository`.
+ 
+- **`FOR UPDATE`** — ao selecionar uma linha, o PostgreSQL coloca um lock exclusivo nela, impedindo que outra transação a leia ou modifique até o lock ser liberado.
+- **`SKIP LOCKED`** — em vez de esperar o lock ser liberado (o que causaria fila de espera), outros workers simplesmente pulam a linha bloqueada e pegam a próxima disponível.
+Sem esse mecanismo, dois workers poderiam ler a mesma tarefa quase simultaneamente — antes que qualquer um tivesse tempo de salvar o status `processing` — resultando em processamento duplicado. Com `FOR UPDATE SKIP LOCKED`, isso é impossível: a linha é bloqueada no exato momento da leitura, dentro de uma transação `@Transactional`, garantindo que apenas um worker processe cada reporte.
 
 
 ## Endpoints Disponíveis
