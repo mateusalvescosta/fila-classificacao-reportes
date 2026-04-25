@@ -1,7 +1,7 @@
 package com.unisales.api_mensageria.repository;
 
-import com.unisales.api_mensageria.model.Task;
 import com.unisales.api_mensageria.projection.QueueStatsProjection;
+import com.unisales.api_mensageria.model.Task;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -15,9 +15,16 @@ import java.util.UUID;
 public interface TaskRepository extends JpaRepository<Task, UUID> {
 
     @Query(value = "SELECT * FROM tasks WHERE queue_name = ?1 " +
-                   "AND status = 'pending' ORDER BY created_at " +
+                   "AND status = 'pending' AND priority IS NULL " +
+                   "ORDER BY created_at ASC " +
                    "LIMIT 1 FOR UPDATE SKIP LOCKED", nativeQuery = true)
-    Optional<Task> findNextTask(String queueName);
+    Optional<Task> findNextUnclassified(String queueName);
+
+    @Query(value = "SELECT * FROM tasks WHERE queue_name = ?1 " +
+                   "AND status = 'pending' " +
+                   "ORDER BY created_at ASC " +
+                   "LIMIT 1 FOR UPDATE SKIP LOCKED", nativeQuery = true)
+    Optional<Task> findNext(String queueName);
 
     @Query(value = "SELECT queue_name AS queueName, " +
                    "COUNT(CASE WHEN status = 'pending'    THEN 1 END) AS pending, " +

@@ -31,3 +31,15 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### macOS ###
+.DS_Store
+**/.DS_Store
+
+### Python ###
+python/.venv/
+python/__pycache__/
+python/worker/__pycache__/
+*.py[cod]
+
+.env

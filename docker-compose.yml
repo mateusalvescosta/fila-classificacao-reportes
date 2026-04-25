@@ -5,26 +5,95 @@ services:
     container_name: api_mensageria_db
     environment:
       POSTGRES_DB: api_mensageria_db
-      POSTGRES_USER: mensageria_user
-      POSTGRES_PASSWORD: salesiano2025
+      POSTGRES_USER: mateusdev
+      POSTGRES_PASSWORD: sold@doM45
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mateusdev -d api_mensageria_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   api:
     build: .
     container_name: api_mensageria
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/api_mensageria_db
-      SPRING_DATASOURCE_USERNAME: mensageria_user
-      SPRING_DATASOURCE_PASSWORD: salesiano2025
-      TASK_MAX_ATTEMPTS: 3
+      SPRING_DATASOURCE_USERNAME: mateusdev
+      SPRING_DATASOURCE_PASSWORD: sold@doM45
     ports:
       - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 90s
+
+  worker-classifier:
+    build:
+      context: ./python
+      dockerfile: worker/Dockerfile
+    command: ["python", "-u", "classifier_worker.py"]
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      API_BASE_URL: http://api:8080
+      QUEUE_NAME: reports
+      POLL_INTERVAL_SECONDS: ${POLL_INTERVAL_SECONDS:-10}
+      MAX_RETRY_ATTEMPTS: ${MAX_RETRY_ATTEMPTS:-3}
+      HIGH_PRIORITY_MIN: ${HIGH_PRIORITY_MIN:-7}
+      GROQ_API_KEY: GROQ_API_KEY: ${GROQ_API_KEY}
+      GROQ_MODEL: llama-3.1-8b-instant
+    deploy:
+      mode: replicated
+      replicas: 2
+
+  worker-standard:
+    build:
+      context: ./python
+      dockerfile: worker/Dockerfile
+    command: ["python", "-u", "standard_worker.py"]
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      API_BASE_URL: http://api:8080
+      QUEUE_NAME: reports-standard
+      POLL_INTERVAL_SECONDS: ${POLL_INTERVAL_SECONDS:-10}
+      MAX_RETRY_ATTEMPTS: ${MAX_RETRY_ATTEMPTS:-3}
+    deploy:
+      mode: replicated
+      replicas: 2
+
+  worker-high-alert:
+    build:
+      context: ./python
+      dockerfile: worker/Dockerfile
+    command: ["python", "-u", "high_alert_worker.py"]
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      API_BASE_URL: http://api:8080
+      QUEUE_NAME: reports-high
+      POLL_INTERVAL_SECONDS: ${POLL_INTERVAL_SECONDS:-10}
+      MAX_RETRY_ATTEMPTS: ${MAX_RETRY_ATTEMPTS:-3}
+      WEBHOOK_URL: ${WEBHOOK_URL:-https://4f97db27deb1c0419c48cc0c0029b26c.m.pipedream.net}
+    deploy:
+      mode: replicated
+      replicas: 2
 
 volumes:
   postgres_data:
