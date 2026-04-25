@@ -1,6 +1,6 @@
 package com.unisales.api_mensageria.controller;
 
-import com.unisales.api_mensageria.dto.QueueStatsDTO;
+import com.unisales.api_mensageria.projection.QueueStatsProjection;
 import com.unisales.api_mensageria.dto.TaskRequestDTO;
 import com.unisales.api_mensageria.dto.TaskUpdateDTO;
 import com.unisales.api_mensageria.model.Task;
@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -40,42 +39,22 @@ public class TaskController {
     }
 
     @GetMapping("/stats")
-    public List<QueueStatsDTO> getStats() {
+    public List<QueueStatsProjection> getStats() {
         return taskService.getQueueStats();
+    }
+
+    /** Próxima tarefa pendente da fila (usado pelo standard e high_alert). */
+    @GetMapping("/next/{queueName}")
+    public ResponseEntity<Task> dequeueNext(@PathVariable String queueName) {
+        return taskService.dequeueNext(queueName)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.noContent().build());
     }
 
     /** Próxima tarefa sem prioridade (só o worker classificador deve usar). */
     @GetMapping("/next/{queueName}/unclassified")
     public ResponseEntity<Task> dequeueUnclassified(@PathVariable String queueName) {
         return taskService.dequeueUnclassified(queueName)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.noContent().build());
-    }
-
-    /** Próxima tarefa já classificada com prioridade >= min (worker de alerta de alta prioridade). */
-    @GetMapping("/next/{queueName}/high-priority")
-    public ResponseEntity<Task> dequeueHighPriority(
-            @PathVariable String queueName,
-            @RequestParam(name = "min", defaultValue = "8") int minPriority) {
-        return taskService.dequeueHighPriority(queueName, minPriority)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.noContent().build());
-    }
-
-    /** Próxima tarefa classificada com prioridade < below (ex.: below=8 -> 1-7), para não ficar presa na fila. */
-    @GetMapping("/next/{queueName}/standard")
-    public ResponseEntity<Task> dequeueStandard(
-            @PathVariable String queueName,
-            @RequestParam(name = "below", defaultValue = "8") int belowPriority) {
-        return taskService.dequeueStandardPriority(queueName, belowPriority)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.noContent().build());
-    }
-
-    /** Dequeue genérico (testes / compatibilidade). */
-    @GetMapping("/next/{queueName}")
-    public ResponseEntity<Task> dequeue(@PathVariable String queueName) {
-        return taskService.dequeue(queueName)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.noContent().build());
     }
