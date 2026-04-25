@@ -18,32 +18,6 @@ services:
       timeout: 5s
       retries: 10
 
-  # Imagem oficial + script montado (sem Dockerfile.ollama): no Windows o BuildKit costuma dar
-  # "EOF" no passo COPY a seguir à extração da camada ~3.6GB do ollama/ollama.
-  ollama:
-    image: ollama/ollama:latest
-    user: "0:0"
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-      - ./docker/ollama-bootstrap.sh:/ollama-bootstrap.sh:ro
-    environment:
-      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.2}
-    entrypoint: ["/bin/sh", "/ollama-bootstrap.sh"]
-    # Healthy só quando o modelo aparece em `ollama list` (evita workers antes do pull).
-    # $$ vira $ no compose; default no shell do container evita nome de modelo vazio.
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "M=$${OLLAMA_MODEL:-llama3.2}; BASE=$$(echo \"$$M\" | cut -d: -f1); ollama list | grep -qiF \"$$BASE\" || exit 1",
-        ]
-      interval: 15s
-      timeout: 15s
-      retries: 60
-      start_period: 900s
-
   api:
     build: .
     container_name: api_mensageria
@@ -63,9 +37,6 @@ services:
       retries: 12
       start_period: 90s
 
-  # RF-07: um serviço por função; deploy.replicas = vários containers com o mesmo papel.
-  # Fila: defina QUEUE_NAME no .env ou `QUEUE_NAME=minha_fila docker compose up` (padrão: email).
-  # classifier (IA) | high_alert (só mensagem prioridade alta) | standard (só encerra 1–7).
   worker-classifier:
     build:
       context: ./python
@@ -75,15 +46,14 @@ services:
     depends_on:
       api:
         condition: service_healthy
-      ollama:
-        condition: service_healthy
     environment:
       API_BASE_URL: http://api:8080
-      QUEUE_NAME: ${QUEUE_NAME:-email}
-      OLLAMA_URL: http://ollama:11434
-      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.2}
-      POLL_INTERVAL_SECONDS: ${POLL_INTERVAL_SECONDS:-5}
-      MAX_RETRY_ATTEMPTS: ${MAX_RETRY_ATTEMPTS:-5}
+      QUEUE_NAME: reports
+      POLL_INTERVAL_SECONDS: ${POLL_INTERVAL_SECONDS:-10}
+      MAX_RETRY_ATTEMPTS: ${MAX_RETRY_ATTEMPTS:-3}
+      HIGH_PRIORITY_MIN: ${HIGH_PRIORITY_MIN:-7}
+      GROQ_API_KEY: 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
+      GROQ_MODEL: llama-3.1-8b-instant
     deploy:
       mode: replicated
       replicas: 2
@@ -99,10 +69,9 @@ services:
         condition: service_healthy
     environment:
       API_BASE_URL: http://api:8080
-      QUEUE_NAME: ${QUEUE_NAME:-email}
-      HIGH_PRIORITY_MIN: ${HIGH_PRIORITY_MIN:-8}
-      POLL_INTERVAL_SECONDS: ${POLL_INTERVAL_SECONDS:-5}
-      MAX_RETRY_ATTEMPTS: ${MAX_RETRY_ATTEMPTS:-5}
+      QUEUE_NAME: reports-standard
+      POLL_INTERVAL_SECONDS: ${POLL_INTERVAL_SECONDS:-10}
+      MAX_RETRY_ATTEMPTS: ${MAX_RETRY_ATTEMPTS:-3}
     deploy:
       mode: replicated
       replicas: 2
@@ -118,14 +87,13 @@ services:
         condition: service_healthy
     environment:
       API_BASE_URL: http://api:8080
-      QUEUE_NAME: ${QUEUE_NAME:-email}
-      HIGH_PRIORITY_MIN: ${HIGH_PRIORITY_MIN:-8}
-      POLL_INTERVAL_SECONDS: ${POLL_INTERVAL_SECONDS:-5}
-      MAX_RETRY_ATTEMPTS: ${MAX_RETRY_ATTEMPTS:-5}
+      QUEUE_NAME: reports-high
+      POLL_INTERVAL_SECONDS: ${POLL_INTERVAL_SECONDS:-10}
+      MAX_RETRY_ATTEMPTS: ${MAX_RETRY_ATTEMPTS:-3}
+      WEBHOOK_URL: ${WEBHOOK_URL:-https://4f97db27deb1c0419c48cc0c0029b26c.m.pipedream.net}
     deploy:
       mode: replicated
       replicas: 2
 
 volumes:
   postgres_data:
-  ollama_data:
