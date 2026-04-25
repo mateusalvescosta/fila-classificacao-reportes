@@ -4,6 +4,11 @@
 **Grupo:** Mateus Alves Costa, Carlos Eduardo Pisa Meireles e Guilherme de Amorim Gomes
 
 
+## O que é o sistema?
+
+O sistema é uma fila distribuída de classificação de reportes operacionais. Quando um usuário abre um reporte informando título, descrição, tipo de ocorrência, setor e categoria, o sistema classifica automaticamente a prioridade desse reporte usando IA (Groq/LLaMA), sem necessidade de análise humana prévia. Com base na prioridade classificada, o reporte é encaminhado para a fila correta e processado pelo worker responsável.
+
+
 ## Stack Tecnológica
 
 | Camada | Tecnologia |
