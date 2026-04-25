@@ -4,6 +4,7 @@ import com.unisales.api_mensageria.projection.QueueStatsProjection;
 import com.unisales.api_mensageria.dto.TaskRequestDTO;
 import com.unisales.api_mensageria.dto.TaskUpdateDTO;
 import com.unisales.api_mensageria.model.Task;
+import com.unisales.api_mensageria.projection.QueueStatsProjection;
 import com.unisales.api_mensageria.service.TaskService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;

@@ -5,7 +5,10 @@ import com.unisales.api_mensageria.dto.TaskRequestDTO;
 import com.unisales.api_mensageria.dto.TaskUpdateDTO;
 import com.unisales.api_mensageria.exception.TaskNotFoundException;
 import com.unisales.api_mensageria.model.Task;
+import com.unisales.api_mensageria.projection.QueueStatsProjection;
 import com.unisales.api_mensageria.repository.TaskRepository;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -20,6 +23,9 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 public class TaskService {
 
     private final TaskRepository taskRepository;
+
+    @Value("${task.max-attempts:3}")
+    private int maxAttempts;
 
     public TaskService(TaskRepository taskRepository) {
         this.taskRepository = taskRepository;
