@@ -90,7 +90,7 @@ services:
       QUEUE_NAME: reports-high
       POLL_INTERVAL_SECONDS: ${POLL_INTERVAL_SECONDS:-10}
       MAX_RETRY_ATTEMPTS: ${MAX_RETRY_ATTEMPTS:-3}
-      WEBHOOK_URL: ${WEBHOOK_URL:-https://4f97db27deb1c0419c48cc0c0029b26c.m.pipedream.net}
+      WEBHOOK_URL: GROQ_API_KEY: ${GROQ_API_KEY}
     deploy:
       mode: replicated
       replicas: 2
