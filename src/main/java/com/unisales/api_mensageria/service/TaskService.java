@@ -1,6 +1,6 @@
 package com.unisales.api_mensageria.service;
 
-import com.unisales.api_mensageria.dto.QueueStatsDTO;
+import com.unisales.api_mensageria.projection.QueueStatsProjection;
 import com.unisales.api_mensageria.dto.TaskRequestDTO;
 import com.unisales.api_mensageria.dto.TaskUpdateDTO;
 import com.unisales.api_mensageria.exception.TaskNotFoundException;
@@ -27,35 +27,21 @@ public class TaskService {
 
     public Task enqueue(TaskRequestDTO dto) {
         Task task = new Task();
-        task.setQueueName(dto.getQueueName());
-        task.setPayload(dto.getPayload());
-        return taskRepository.save(task);
+        task.setQueueName(dto.queueName());
+        task.setPayload(dto.payload());
+        Task saved = taskRepository.save(task);
+        System.out.println("[api] tarefa " + saved.getId() + " recebida na fila '" + saved.getQueueName() + "'");
+        return saved;
     }
 
     @Transactional
-    public Optional<Task> dequeue(String queueName) {
-        return dequeueAndReserve(taskRepository.findNextTask(queueName));
+    public Optional<Task> dequeueNext(String queueName) {
+        return dequeueAndReserve(taskRepository.findNext(queueName));
     }
 
     @Transactional
     public Optional<Task> dequeueUnclassified(String queueName) {
         return dequeueAndReserve(taskRepository.findNextUnclassified(queueName));
-    }
-
-    @Transactional
-    public Optional<Task> dequeueHighPriority(String queueName, int minPriority) {
-        if (minPriority < 1 || minPriority > 10) {
-            throw new ResponseStatusException(BAD_REQUEST, "minPriority must be between 1 and 10");
-        }
-        return dequeueAndReserve(taskRepository.findNextHighPriority(queueName, minPriority));
-    }
-
-    @Transactional
-    public Optional<Task> dequeueStandardPriority(String queueName, int belowPriority) {
-        if (belowPriority < 2 || belowPriority > 10) {
-            throw new ResponseStatusException(BAD_REQUEST, "belowPriority must be between 2 and 10");
-        }
-        return dequeueAndReserve(taskRepository.findNextStandardPriority(queueName, belowPriority));
     }
 
     private Optional<Task> dequeueAndReserve(Optional<Task> found) {
@@ -73,12 +59,13 @@ public class TaskService {
     public Task updateStatus(UUID id, TaskUpdateDTO dto) {
         Task task = taskRepository.findById(id).orElseThrow(() -> new TaskNotFoundException(id));
         String oldStatus = task.getStatus();
-        String newStatus = dto.getStatus().toLowerCase();
+        String newStatus = dto.status().toLowerCase();
+        Integer oldPriority = task.getPriority();
         task.setStatus(newStatus);
 
-        Integer newPriority = dto.getPriority();
-        if (newPriority == null && dto.getResult() != null) {
-            Object rp = dto.getResult().get("priority");
+        Integer newPriority = dto.priority();
+        if (newPriority == null && dto.result() != null) {
+            Object rp = dto.result().get("priority");
             if (rp instanceof Number n) {
                 newPriority = n.intValue();
             }
@@ -90,15 +77,20 @@ public class TaskService {
             task.setPriority(newPriority);
         }
 
-        if (dto.getResult() != null) {
-            task.setResult(dto.getResult());
+        if (dto.queueName() != null && !dto.queueName().isBlank()) {
+            task.setQueueName(dto.queueName());
         }
 
-        boolean classifiedBackToQueue =
+        if (dto.result() != null) {
+            task.setResult(dto.result());
+        }
+
+        boolean classifierBackToQueue =
                 "processing".equalsIgnoreCase(oldStatus)
                         && "pending".equalsIgnoreCase(newStatus)
-                        && task.getPriority() != null;
-        if (classifiedBackToQueue) {
+                        && oldPriority == null
+                        && newPriority != null;
+        if (classifierBackToQueue) {
             task.setAttempts(Math.max(0, task.getAttempts() - 1));
         }
 
@@ -113,7 +105,7 @@ public class TaskService {
         return taskRepository.findAll();
     }
 
-    public List<QueueStatsDTO> getQueueStats() {
+    public List<QueueStatsProjection> getQueueStats() {
         return taskRepository.findQueueStats();
     }
 }
