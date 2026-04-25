@@ -1,26 +1,24 @@
 package com.unisales.api_mensageria.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.util.Map;
 
-@Getter
-@Setter
-public class TaskUpdateDTO {
+public record TaskUpdateDTO(
+        @NotBlank
+        @Pattern(regexp = "pending|processing|done|error", flags = Pattern.Flag.CASE_INSENSITIVE)
+        String status,
 
-    @NotBlank
-    @Pattern(regexp = "pending|processing|done|error", flags = Pattern.Flag.CASE_INSENSITIVE)
-    private String status;
+        @Min(1)
+        @Max(10)
+        Integer priority,
 
-    /** Opcional: persiste na coluna {@code priority} (ex.: worker após IA). */
-    @Min(1)
-    @Max(10)
-    private Integer priority;
+        @JsonProperty("queue_name")
+        String queueName,
 
-    private Map<String, Object> result;
-}
+        Map<String, Object> result
+) {}
