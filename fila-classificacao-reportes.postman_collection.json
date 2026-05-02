@@ -1,0 +1,260 @@
+{
+  "info": {
+    "_postman_id": "6c5b4fe7-7ebb-4fa0-9e45-0c68700b81a5",
+    "name": "fila-classificacao-reportes",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "47848777",
+    "_collection_link": "https://go.postman.co/collection/47848777-6c5b4fe7-7ebb-4fa0-9e45-0c68700b81a5?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Enviar Tarefa Prioridade Baixa",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"queue_name\": \"reports\",\r\n  \"payload\": {\r\n    \"title\": \"Ajuste de texto no relatório interno de RH\",\r\n    \"description\": \"Correção de um erro de digitação na descrição do campo 'cargo' no relatório interno de recursos humanos. Sem impacto para clientes.\",\r\n    \"type\": \"task\",\r\n    \"category\": \"documentation\",\r\n    \"sector\": \"hr\"\r\n  }\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/tasks",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "tasks"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Enviar Tarefa Prioridade Média",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"queue_name\": \"reports\",\r\n  \"payload\": {\r\n    \"title\": \"Lentidão no módulo de relatórios para alguns clientes\",\r\n    \"description\": \"Alguns clientes reportaram lentidão ao gerar relatórios mensais. O sistema está funcional, mas com tempo de resposta acima do normal.\",\r\n    \"type\": \"support\",\r\n    \"category\": \"performance\",\r\n    \"sector\": \"customer_success\"\r\n  }\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/tasks",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "tasks"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Enviar Tarefa Prioridade Alta",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"queue_name\": \"reports\",\r\n  \"payload\": {\r\n    \"title\": \"Produção em baixo — todos os clientes sem acesso\",\r\n    \"description\": \"O serviço principal está completamente indisponível. Todos os clientes estão sem acesso ao sistema desde as 14h. Há perda de receita em andamento.\",\r\n    \"type\": \"incident\",\r\n    \"category\": \"infrastructure\",\r\n    \"sector\": \"operations\"\r\n  }\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/tasks",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "tasks"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Buscar Tarefa por ID",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/tasks/COLOQUE AQUI O ID DA TAREFA",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "tasks",
+            "COLOQUE AQUI O ID DA TAREFA"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Exibir Filas",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/tasks/stats",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "tasks",
+            "stats"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Atualizar Tarefa",
+      "request": {
+        "method": "PATCH",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"status\": \"error\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/tasks/COLOQUE AQUI O ID DA TAREFA",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "tasks",
+            "COLOQUE AQUI O ID DA TAREFA"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Retry Worker High Alert Webhook",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"queue_name\": \"reports\",\r\n   \"payload\": {\r\n    \"title\": \"Produção em baixo — todos os clientes sem acesso\",\r\n    \"description\": \"O serviço principal está completamente indisponível. Todos os clientes estão sem acesso ao sistema desde as 14h. Há perda de receita em andamento.\",\r\n    \"type\": \"incident\",\r\n    \"category\": \"infrastructure\",\r\n    \"sector\": \"operations\"\r\n  }\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/tasks",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "tasks"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Retry Worker Standard",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"queue_name\": \"reports-standard\",\r\n  \"payload\": {\r\n    \"title\": \"Lentidão no módulo de relatórios para alguns clientes\",\r\n    \"description\": \"Alguns clientes reportaram lentidão ao gerar relatórios mensais. O sistema está funcional, mas com tempo de resposta acima do normal.\",\r\n    \"type\": \"support\",\r\n    \"category\": \"performance\",\r\n    \"sector\": \"customer_success\"\r\n  }\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/tasks",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "tasks"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Retry Worker Classifier",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"queue_name\": \"reports\",\r\n  \"payload\": {\r\n    \"title\": \"Ajuste de texto no relatório interno de RH\",\r\n    \"description\": \"Correção de um erro de digitação na descrição do campo 'cargo' no relatório interno de recursos humanos. Sem impacto para clientes.\",\r\n    \"type\": \"task\",\r\n    \"category\": \"documentation\"\r\n  }\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/tasks",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "tasks"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
